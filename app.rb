@@ -127,12 +127,6 @@ def handle_mention(event)
   begin
     jira_token = JiraTokens.fresh_token(user_id)
 
-    if jira_token.nil? && ENV["JIRA_MCP_URL"] && !ENV["JIRA_MCP_URL"].empty?
-      slack_post(channel, thread_ts,
-        ":warning: Your Jira account is not connected. Run `/jira-connect` to link it.")
-      return
-    end
-
     result   = call_claude(user_text, jira_token)
     text_out = result[:text]
     csv_data = result[:csv]
@@ -146,7 +140,7 @@ end
 
 def call_claude(user_message, jira_token = nil)
   body = {
-    model:      "claude-sonnet-4-6",
+    model:      "claude-haiku-4-5-20251001",
     max_tokens: 4096,
     system:     system_prompt,
     messages:   [{ role: "user", content: user_message }]
