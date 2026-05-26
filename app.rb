@@ -20,13 +20,19 @@ SLACK_API     = "https://slack.com/api"
 
 def verify_slack_signature!(request, body)
   timestamp = request.env["HTTP_X_SLACK_REQUEST_TIMESTAMP"].to_i
-  halt 403 if (Time.now.to_i - timestamp).abs > 300
+  if (Time.now.to_i - timestamp).abs > 300
+    $stderr.puts "SLACK_VERIFY_FAIL: timestamp too old: #{timestamp} vs #{Time.now.to_i}"
+    halt 403
+  end
 
   sig_base = "v0:#{timestamp}:#{body}"
   expected = "v0=" + OpenSSL::HMAC.hexdigest("SHA256", ENV.fetch("SLACK_SIGNING_SECRET"), sig_base)
   received = request.env["HTTP_X_SLACK_SIGNATURE"].to_s
 
-  halt 403 unless Rack::Utils.secure_compare(expected, received)
+  unless Rack::Utils.secure_compare(expected, received)
+    $stderr.puts "SLACK_VERIFY_FAIL: HMAC mismatch. expected=#{expected} received=#{received}"
+    halt 403
+  end
 end
 
 # ---------------------------------------------------------------------------
