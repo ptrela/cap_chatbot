@@ -8,7 +8,7 @@ require_relative "jira_oauth"
 
 set :bind, "0.0.0.0"
 set :port, ENV.fetch("PORT", 3000)
-set :protection, except: [:host_authorization]
+set :protection, false
 
 ANTHROPIC_API = "https://api.anthropic.com/v1/messages"
 SLACK_API     = "https://slack.com/api"
