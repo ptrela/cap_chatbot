@@ -8,7 +8,7 @@ require_relative "jira_oauth"
 
 set :bind, "0.0.0.0"
 set :port, ENV.fetch("PORT", 3000)
-set :protection, false
+set :protection, host_authorization: { permitted_hosts: ["zwsgs0wwco0ow0sc0okooocw.3.72.162.105.sslip.io"] }
 
 ANTHROPIC_API = "https://api.anthropic.com/v1/messages"
 SLACK_API     = "https://slack.com/api"
