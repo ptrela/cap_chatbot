@@ -6,3 +6,7 @@ workers ENV.fetch("WEB_CONCURRENCY", 2).to_i
 bind "tcp://0.0.0.0:#{ENV.fetch('PORT', 3000)}"
 
 preload_app!
+
+on_worker_boot do
+  DB.disconnect
+end
