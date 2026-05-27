@@ -41,6 +41,7 @@ end
 
 post "/slack/events" do
   content_type :json
+  request.body.rewind
   body_str = request.body.read
   payload  = JSON.parse(body_str)
 
@@ -63,6 +64,7 @@ end
 # ---------------------------------------------------------------------------
 
 post "/slack/commands/jira-connect" do
+  request.body.rewind
   body_str = request.body.read
   verify_slack_signature!(request, body_str)
 
