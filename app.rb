@@ -127,9 +127,11 @@ def handle_mention(event)
   slack_post(channel, thread_ts, ":hourglass_flowing_sand: Thinking...")
 
   begin
-    jira_token = JiraTokens.fresh_token(user_id)
+    jira_record = JiraTokens.find(user_id)
+    jira_token  = JiraTokens.fresh_token(user_id)
+    cloud_id    = jira_record&.dig(:cloud_id)
 
-    result   = call_claude(user_text, jira_token)
+    result   = call_claude(user_text, jira_token, cloud_id)
     text_out = result[:text]
     csv_data = result[:csv]
 
@@ -140,11 +142,11 @@ def handle_mention(event)
   end
 end
 
-def call_claude(user_message, jira_token = nil)
+def call_claude(user_message, jira_token = nil, cloud_id = nil)
   body = {
     model:      "claude-haiku-4-5-20251001",
     max_tokens: 4096,
-    system:     system_prompt,
+    system:     system_prompt(cloud_id),
     messages:   [{ role: "user", content: user_message }]
   }
 
@@ -167,7 +169,7 @@ def call_claude(user_message, jira_token = nil)
       "anthropic-beta"    => "mcp-client-2025-04-04"
     },
     body:    body.to_json,
-    timeout: 120
+    timeout: 300
   )
 
   raise "Anthropic API error #{response.code}: #{response.body}" unless response.success?
@@ -195,10 +197,12 @@ def parse_claude_response(data)
   { text: text_parts.join("\n\n"), csv: csv_data }
 end
 
-def system_prompt
+def system_prompt(cloud_id = nil)
+  jira_context = cloud_id ? "The user's Jira cloud ID is: #{cloud_id}. Use it when MCP tools require a cloudId or site identifier." : ""
   <<~PROMPT
     You are a helpful assistant integrated into Slack.
-    When the user asks for data from Jira (issues, sprints, epics, reports), use the Jira MCP tools to fetch it.
+    When the user asks for data from Jira (issues, sprints, epics, reports), use the Jira MCP tools to fetch it. Do not ask the user for their Jira URL or credentials — use the MCP tools directly.
+    #{jira_context}
     If the result is tabular data (multiple issues, tasks, tickets), format it as a CSV code block:
     ```csv
     column1,column2,column3
