@@ -151,10 +151,10 @@ def call_claude(user_message, jira_token = nil)
   jira_url = ENV["JIRA_MCP_URL"]
   if jira_url && !jira_url.empty? && jira_token
     body[:mcp_servers] = [{
-      type:    "url",
-      url:     jira_url,
-      name:    "jira",
-      headers: { "Authorization" => "Bearer #{jira_token}" }
+      type:                "url",
+      url:                 jira_url,
+      name:                "jira",
+      authorization_token: jira_token
     }]
   end
 
